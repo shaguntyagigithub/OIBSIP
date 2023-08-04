@@ -1,0 +1,23 @@
+import pandas as pd
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.model_selection import train_test_split
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.metrics import classification_report, accuracy_score
+import nltk
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
+
+data = pd.read_csv('spam.csv', encoding='latin-1')
+data = data.rename(columns={'v1': 'label', 'v2': 'message'})
+data['label'] = data['label'].map({'spam': 1, 'ham': 0})
+data['message'] = data['message'].str.replace('[^\w\s]', '').str.lower()
+train_data, test_data, train_labels, test_labels = train_test_split(data['message'], data['label'], test_size=0.2, random_state=42)
+vectorizer = CountVectorizer(stop_words=stopwords.words('english'))
+train_features = vectorizer.fit_transform(train_data)
+test_features = vectorizer.transform(test_data)
+classifier = MultinomialNB()
+classifier.fit(train_features, train_labels)
+predictions = classifier.predict(test_features)
+accuracy = accuracy_score(test_labels, predictions)
+print("Accuracy:", accuracy)
+print(classification_report(test_labels, predictions))
